@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  secretName: traefik-ssl
+  issuerRef:
+    name: acme-issuer
+    kind: ClusterIssuer
+  commonName: "*.kanomnutt.site"
+  dnsNames:
+  - 'kanomnutt.site'
+  - '*.kanomnutt.site'

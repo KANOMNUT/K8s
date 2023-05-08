@@ -1,0 +1,240 @@
+# Install via helm https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+# Values Ref: https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/values.yaml
+# Add helm repo > helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# Install > helm install <Release Name> -n <Namespace> prometheus-community/kube-prometheus-stack -f <Configuration Values.yaml>
+defaultRules:
+  create: false
+alertmanager:
+  enabled: false
+grafana:
+  enabled: true
+  defaultDashboardsTimezone: Asia/Bangkok
+  adminPassword: "RBllGame0ver"
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+    - grafana.kanomnutt.site
+    path: /
+    tls:
+    - secretName: monitor-tls
+      hosts: 
+      - grafana.kanomnutt.site
+kubelet:
+  serviceMonitor:
+    cAdvisor: true
+kubeEtcd:
+  enabled: true
+  endpoints: 
+  - 192.168.1.100
+  - 192.168.1.101
+  - 192.168.1.102
+  service:
+    enabled: true
+    port: 2379
+    targetPort: 2379
+  serviceMonitor:
+    scheme: https
+    insecureSkipVerify: false
+    caFile: /etc/prometheus/secrets/etcd-tls/ca.pem
+    certFile: /etc/prometheus/secrets/etcd-tls/tls.crt
+    keyFile: /etc/prometheus/secrets/etcd-tls/tls.key
+prometheus:
+  service:
+    type: ClusterIP
+    #loadBalancerIP: ""
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+    - prometheus-kanomnutt.kanomnutt.site
+    path:
+    - /
+    tls:
+    - secretName: monitor-tls
+      hosts: 
+      - prometheus-kanomnutt.kanomnutt.site
+  prometheusSpec:
+    secrets: 
+    - etcd-tls
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+      limits:
+        cpu: 1
+        memory: 6Gi
+    nodeSelector: 
+      kubernetes.io/hostname: k8s1
+    retention: 2d
+    replicas: 1
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: px-db
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+    additionalScrapeConfigs:
+#    - job_name: 'kube-state-mectrics'
+#      static_configs:
+#      - targets: ['prometheus-kube-state-metrics.monitoring.svc.k8s.kanomnutt.site:8080']
+#    - job_name: 'px-node'
+#      scrape_interval: 5s
+#      static_configs:
+#      - targets: ['192.168.1.100:9001']
+#        labels:
+#          node_name: node1
+#      - targets: ['192.168.1.101:9001']
+#        labels:
+#          node_name: node2
+#      - targets: ['192.168.1.102:9001']
+#        labels:
+#          node_name: node3
+#      relabel_configs:
+#      - source_labels: [node_name]
+#        target_label: instance
+#        regex: '([^:;]+)((:[0-9]+)?|;(.*))'
+#        replacement: '${1}'
+#    - job_name: "cadvisor"
+#      kubernetes_sd_configs:
+#      - role: pod
+#      relabel_configs:
+#      - source_labels: [__meta_kubernetes_pod_label_app]
+#        action: keep
+#        regex: cadvisor
+#      - action: labelmap
+#        regex: __meta_kubernetes_pod_label_(.+)
+#      - source_labels: [__meta_kubernetes_namespace]
+#        action: replace
+#        target_label: namespace
+#      - source_labels: [__meta_kubernetes_pod_name]
+#        action: replace
+#        target_label: pod
+#      - source_labels: [__meta_kubernetes_pod_node_name]
+#        target_label: instance
+#        regex: '([^:;]+)((:[0-9]+)?|;(.*))'
+#        replacement: '${1}'
+
+#    - job_name: x509-certificate-exporter
+#      kubernetes_sd_configs:
+#      - role: endpoints
+#      relabel_configs:
+#      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+#        action: keep
+#        regex: monitoring;x509-certificate-exporter-headless;metrics
+#      - source_labels: [__meta_kubernetes_endpoint_node_name]
+#        target_label: instance
+#        regex: '([^:;]+)((:[0-9]+)?|;(.*))'
+#        replacement: '${1}'
+#----------------------------------------------------------------------------------------------------------------------------------------
+  additionalServiceMonitors:
+#    - name: cadvisor
+#      namespaceSelector:
+#        matchNames:
+#        - monitoring
+#      selector:
+#        matchLabels:
+#          name: cadvisor
+#      endpoints:
+#      - port: http
+    - name: ingress-nginx-controller
+      namespaceSelector:
+        matchNames:
+        - ingress-nginx
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: controller
+          app.kubernetes.io/instance: ingress-nginx
+          app.kubernetes.io/name: ingress-nginx
+      endpoints:
+      - interval: 30s
+        port: metrics
+    - name: portworx
+      endpoints:
+      - bearerTokenSecret:
+          key: ""
+        port: px-api
+      - bearerTokenSecret:
+          key: ""
+        port: px-kvdb
+      namespaceSelector:
+        any: true
+      selector:
+        matchLabels:
+          name: portworx
+#----------------------------------------------------------------------------------------------------------------------------------------
+  additionalPodMonitors:
+  - name: cluster-operator-metrics
+    namespaceSelector:
+      matchNames:
+      - kafka
+    selector:
+      matchLabels:
+        strimzi.io/kind: cluster-operator
+    podMetricsEndpoints:
+    - path: /metrics
+      port: http
+  - name: entity-operator-metrics
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: entity-operator
+    namespaceSelector:
+      matchNames:
+      - kafka
+    podMetricsEndpoints:
+    - path: /metrics
+      port: healthcheck
+  - name: bridge-metrics
+    selector:
+      matchLabels:
+        strimzi.io/kind: KafkaBridge
+    namespaceSelector:
+      matchNames:
+      - kafka
+    podMetricsEndpoints:
+    - path: /metrics
+      port: rest-api
+  - name: kafka-resources-metrics
+    selector:
+      matchExpressions:
+        - key: "strimzi.io/kind"
+          operator: In
+          values: ["Kafka", "KafkaConnect", "KafkaMirrorMaker", "KafkaMirrorMaker2"]
+    namespaceSelector:
+      matchNames:
+      - kafka
+    podMetricsEndpoints:
+    - path: /metrics
+      port: tcp-prometheus
+      relabelings:
+      - separator: ;
+        regex: __meta_kubernetes_pod_label_(strimzi_io_.+)
+        replacement: $1
+        action: labelmap
+      - sourceLabels: [__meta_kubernetes_namespace]
+        separator: ;
+        regex: (.*)
+        targetLabel: namespace
+        replacement: $1
+        action: replace
+      - sourceLabels: [__meta_kubernetes_pod_name]
+        separator: ;
+        regex: (.*)
+        targetLabel: kubernetes_pod_name
+        replacement: $1
+        action: replace
+      - sourceLabels: [__meta_kubernetes_pod_node_name]
+        separator: ;
+        regex: (.*)
+        targetLabel: node_name
+        replacement: $1
+        action: replace
+      - sourceLabels: [__meta_kubernetes_pod_host_ip]
+        separator: ;
+        regex: (.*)
+        targetLabel: node_ip
+        replacement: $1
+        action: replace
+

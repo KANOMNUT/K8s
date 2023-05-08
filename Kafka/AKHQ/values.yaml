@@ -1,0 +1,30 @@
+ingress:
+  enabled: true
+  paths:
+  - /
+  hosts: 
+  - akhq-kanomnutt.kanomnutt.site
+  tls:
+  - hosts:
+    - akhq-kanomnutt.kanomnutt.site
+    secretName: akhq-ssl
+
+configuration:
+  micronaut:
+    security:
+      enabled: true
+  akhq:
+    security:
+      enabled: true
+      basic-auth:
+      - username: admin
+        password: "f74f2a1d82f9c5db489dab14242f0b935bcac20be2e6b2b2cdf1382ca48da264"
+        groups:
+        - admin
+    connections:
+      kafka-kanomnutt:
+        properties:
+          bootstrap.servers: kafka-external.kanomnutt.site:443
+          security.protocol: SASL_SSL
+          sasl.mechanism: SCRAM-SHA-512
+          sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username="kafdrop-user" password="LuYTLTLU2DnWvXtRzVZxSOg6obk4DV9J";

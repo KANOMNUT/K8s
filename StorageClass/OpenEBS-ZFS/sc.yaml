@@ -1,0 +1,20 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: openebs-zfspv
+parameters:
+  recordsize: "4k"
+  compression: "off"
+  dedup: "off"
+  fstype: "zfs"
+  poolname: "zfspv-pool"
+  shared: "yes"
+provisioner: zfs.csi.openebs.io
+allowVolumeExpansion: true
+allowedTopologies:
+- matchLabelExpressions:
+  - key: kubernetes.io/hostname
+    values:
+    - "k8s1"
+    - "k8s2"
+    - "k8s3"

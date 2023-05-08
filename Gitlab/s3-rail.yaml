@@ -1,0 +1,7 @@
+provider: AWS
+region: af-south-1
+aws_access_key_id: buolcxvfeqQahKO4
+aws_secret_access_key: UJbfTTaHSaaCjg5N27ktGk04RNHgxd0h
+aws_signature_version: 4
+endpoint: "<MinIO Endpint URL>"
+path_style: true

@@ -1,0 +1,16 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`prometheus.kanomnutt.site`)
+      kind: Rule
+      services:
+      - name: prometheus-kube-prometheus-prometheus
+        port: 9090
+  tls:
+    secretName: prometheus # SSL from Cert Manager

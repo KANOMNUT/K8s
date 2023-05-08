@@ -1,0 +1,44 @@
+# SOURCE: https://install.portworx.com/?operator=true&mc=false&kbver=1.24.1&oem=esse&user=3baafe0e-b309-408a-976f-80c7904e42e2&b=true&s=%2Fdev%2Fvg-px%2Flv-px&j=auto&kd=%2Fdev%2Fvg-kvdb%2Flv-kvdb&c=px-cluster-816be616-d8d5-4971-8f9a-6faa8d8943b6&stork=true&csi=true&mon=true&tel=true&st=k8s&promop=true
+# Login with Github account
+kind: StorageCluster
+apiVersion: core.libopenstorage.org/v1
+metadata:
+  name: px-cluster-816be616-d8d5-4971-8f9a-6faa8d8943b6
+  namespace: kube-system
+  annotations:
+    portworx.io/install-source: "https://install.portworx.com/?operator=true&mc=false&kbver=1.24.1&oem=esse&user=3baafe0e-b309-408a-976f-80c7904e42e2&b=true&s=%2Fdev%2Fvg-px%2Flv-px&j=auto&kd=%2Fdev%2Fvg-kvdb%2Flv-kvdb&c=px-cluster-816be616-d8d5-4971-8f9a-6faa8d8943b6&stork=true&csi=true&mon=true&tel=true&st=k8s&promop=true"
+    portworx.io/misc-args: "--oem esse"
+spec:
+  image: portworx/oci-monitor:2.13.0
+  imagePullPolicy: Always
+  kvdb:
+    internal: true
+  storage:
+    devices:
+    - /dev/vg-px/lv-px
+    journalDevice: auto
+    kvdbDevice: /dev/vg-kvdb/lv-kvdb
+  secretsProvider: k8s
+  stork:
+    enabled: true
+    args:
+      webhook-controller: "true"
+  autopilot:
+    enabled: true
+  csi:
+    enabled: true
+  monitoring:
+    telemetry:
+      enabled: true
+    prometheus:
+      enabled: false
+      exportMetrics: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: px-essential
+  namespace: kube-system
+data:
+  px-essen-user-id: M2JhYWZlMGUtYjMwOS00MDhhLTk3NmYtODBjNzkwNGU0MmUy
+  px-osb-endpoint: aHR0cHM6Ly9weGVzc2VudGlhbHMucG9ydHdvcnguY29tL29zYi9iaWxsaW5nL3YxL3JlZ2lzdGVy

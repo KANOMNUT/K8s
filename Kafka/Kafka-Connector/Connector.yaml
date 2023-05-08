@@ -1,0 +1,55 @@
+# Kafka Connector with Debezium SQL Plugins.
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: connector-otc-vsms-vsmstbv-db-sysprod-otc # Change me 
+  labels:
+    strimzi.io/cluster: kafka-connect-prd # Change me 
+spec:
+  autoRestart:
+    enabled: true
+  class: io.debezium.connector.sqlserver.SqlServerConnector
+  tasksMax: 1
+  config:
+    database.hostname: 10.7.54.132 # Change me 
+    database.port: "1433" # Change me 
+    database.user: "reportinguser" # Change me 
+    database.password: "R3p0r11n92o2oU$e9" # Change me 
+    database.dbname: "vsmstbv_db" # Change me 
+    database.server.name: "otc-vsmstbv-db" # Change me 
+    database.history.kafka.topic: "dbhistory.vsms-vsmstbv-db-sys-userrole"  # Change me 
+    table.include.list: "dbo.TB_SYS_UserRole" # Change me 
+    transforms.route.replacement: "otc-vsms-vsmstbv-db-sys-prod-otc" # Change me 
+    #config mode
+    snapshot.isolation.mode: "read_committed"
+    topic.creation.default.replication.factor: 1
+    topic.creation.default.partitions: 3
+    topic.creation.default.delete.retention.ms: 3
+    topic.creation.default.cleanup.policy: "compact"
+    topic.creation.default.retention.ms: 10080
+    time.precision.mode: "connect"
+    decimal.handling.mode: "double"
+    binary.handling.mode: "bytes"
+    #Additional Timestamp converter to transforms
+    transforms: "route,TimestampConverter"
+    #------------------------------------------------------------------------------------------------
+    transforms.route.type: "org.apache.kafka.connect.transforms.RegexRouter"
+    transforms.route.regex: "([^.]+)\\.([^.]+)\\.([^.]+)"
+    #Additional configuration for testing
+    key.converter: "org.apache.kafka.connect.json.JsonConverter"
+    value.converter: "org.apache.kafka.connect.json.JsonConverter"
+    key.converter.schemas.enable: "true"
+    value.converter.schemas.enable: "true"
+    tasks.max: "1"
+    transforms.TimestampConverter.type: "org.apache.kafka.connect.transforms.TimestampConverter$Value"
+    transforms.TimestampConverter.field: "CreatedDate"
+    transforms.TimestampConverter.format: "YYYY-MM-DD hh:mm:ss"
+    transforms.TimestampConverter.target.type: "string"	
+    #-----------------------------------------------------------------------------------------------	
+    database.history.kafka.bootstrap.servers: "kafka-cluster-prd-kafka-external-bootstrap:9094"
+    database.history.producer.security.protocol: "SASL_PLAINTEXT"
+    database.history.producer.sasl.mechanism: "SCRAM-SHA-512"
+    database.history.producer.sasl.jaas.config: "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"connector-user\" password=\"pY55KzNDfyx3\";" # Change me 
+    database.history.consumer.security.protocol: "SASL_PLAINTEXT"
+    database.history.consumer.sasl.mechanism: "SCRAM-SHA-512"
+    database.history.consumer.sasl.jaas.config: "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"connector-user\" password=\"pY55KzNDfyx3\";" # Change me 

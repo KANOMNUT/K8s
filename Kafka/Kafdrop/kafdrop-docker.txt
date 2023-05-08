@@ -1,0 +1,52 @@
+docker run -d --rm -p 9035:9000 \
+    -e KAFKA_BROKERCONNECT=10.7.35.202:9094 \
+    -e KAFKA_PROPERTIES="$(cat kafkadev.properties | base64)" \
+    -e JVM_OPTS="-Xms32M -Xmx64M" \
+    -e SERVER_SERVLET_CONTEXTPATH="/" \
+    -e CMD_ARGS="--topic.deleteEnabled=false --topic.createEnabled=false" \
+    -v /etc/localtime:/etc/localtime:ro \
+    obsidiandynamics/kafdrop
+
+docker run -d --rm -p 9037:9000 \
+    -e KAFKA_BROKERCONNECT=10.7.37.202:9094 \
+    -e KAFKA_PROPERTIES="$(cat kafka.properties | base64)" \
+    -e JVM_OPTS="-Xms32M -Xmx64M" \
+    -e SERVER_SERVLET_CONTEXTPATH="/" \
+    -e CMD_ARGS="--topic.deleteEnabled=false --topic.createEnabled=false" \
+    -v /etc/localtime:/etc/localtime:ro \
+    obsidiandynamics/kafdrop
+
+docker run -d --rm -p 9036:9000 \
+    -e KAFKA_BROKERCONNECT=10.7.36.202:9094 \
+    -e KAFKA_PROPERTIES="$(cat kafkauat.properties | base64)" \
+    -e JVM_OPTS="-Xms32M -Xmx64M" \
+    -e SERVER_SERVLET_CONTEXTPATH="/" \
+    -e CMD_ARGS="--topic.deleteEnabled=false --topic.createEnabled=false" \
+    -v /etc/localtime:/etc/localtime:ro \
+    obsidiandynamics/kafdrop
+
+docker run -d --rm -p 9038:9000 \
+    -e KAFKA_BROKERCONNECT=10.7.38.202:9094 \
+    -e KAFKA_PROPERTIES="$(cat kafkadev-POC.properties | base64)" \
+    -e JVM_OPTS="-Xms32M -Xmx64M" \
+    -e SERVER_SERVLET_CONTEXTPATH="/" \
+    -e CMD_ARGS="--topic.deleteEnabled=false --topic.createEnabled=false" \
+    -v /etc/localtime:/etc/localtime:ro \
+    obsidiandynamics/kafdrop
+
+docker run -d --rm -p 9039:9000 \
+    -e KAFKA_BROKERCONNECT=10.7.39.202:9094 \
+    -e KAFKA_PROPERTIES="$(cat kafkauat-POC.properties | base64)" \
+    -e JVM_OPTS="-Xms32M -Xmx64M" \
+    -e SERVER_SERVLET_CONTEXTPATH="/" \
+    -e CMD_ARGS="--topic.deleteEnabled=false --topic.createEnabled=false" \
+    -v /etc/localtime:/etc/localtime:ro \
+    obsidiandynamics/kafdrop
+
+##### using helm if it is on Kubernetes ###
+helm upgrade -n kafka -i kafdrop chart --set image.tag=3.27.0 \
+    --set kafka.brokerConnect=kafka-cluster-kafka-bootstrap:9092 \
+    --set server.servlet.contextPath="/" \
+    --set kafka.properties="$(cat kafka.properties | base64)" \
+    --set jvm.opts="-Xms32M -Xmx64M" \
+    --set cmdArgs="--topic.deleteEnabled=false --topic.createEnabled=false"

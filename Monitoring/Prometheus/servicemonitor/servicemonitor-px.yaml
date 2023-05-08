@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    release: kube-prometheus-stack
+  name: portworx
+  namespace: monitoring
+spec:
+  endpoints:
+  - bearerTokenSecret:
+      key: ""
+    port: px-api
+  - bearerTokenSecret:
+      key: ""
+    port: px-kvdb
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      name: portworx

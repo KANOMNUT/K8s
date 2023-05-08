@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: traefik
+  name: nginx-ingress
+spec:
+  rules:
+  - host: nginx.kanomnutt.site
+    http:
+      paths:
+      - backend:
+          service:
+            name: nginx-svc
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - nginx.kanomnutt.site
+    secretName: nginx
+

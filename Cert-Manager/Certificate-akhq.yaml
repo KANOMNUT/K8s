@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: akhq
+  namespace: akhq
+spec:
+  secretName: akhq-ssl
+  issuerRef:
+    name: acme-issuer
+    kind: ClusterIssuer
+  commonName: "*.kanomnutt.site"
+  dnsNames:
+  - 'kanomnutt.site'
+  - '*.kanomnutt.site'

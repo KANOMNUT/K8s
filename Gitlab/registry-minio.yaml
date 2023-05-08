@@ -1,0 +1,8 @@
+s3:
+    v4auth: true
+    regionendpoint: "<MinIO Endpint URL>"
+    pathstyle: true
+    region: af-south-1
+    bucket: gitlab-registry-storage
+    accesskey: buolcxvfeqQahKO4
+    secretkey: UJbfTTaHSaaCjg5N27ktGk04RNHgxd0h

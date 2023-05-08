@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: prometheus-tls
+  namespace: monitoring
+spec:
+  secretName: monitor-tls
+  issuerRef:
+    name: acme-issuer
+    kind: ClusterIssuer
+  subject:
+    organizations:
+    - KANOMNUTT
+  dnsNames:
+  - 'prometheus-kanomnutt.kanomnutt.site'
+  - 'grafana.kanomnutt.site'

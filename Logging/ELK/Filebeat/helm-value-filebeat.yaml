@@ -1,0 +1,52 @@
+# Install via helm 
+# 1.helm repo add elastic https://helm.elastic.co
+# 2. helm repo update
+# 3. helm install filebeat -n <namespace> elastic/filebeat -f <values.yaml>
+
+# Get logs Namespace kafka from /var/logs, drop pod didn't related to kafka and send data fields name: kubernetes.pod.name, kubernetes.container.namespace, kubernetes.container.name and message. 
+
+filebeatConfig:
+    filebeat.yml: |
+      filebeat.autodiscover:
+        providers:
+        - type: kubernetes
+          templates:
+          - condition:
+              equals:
+                kubernetes.namespace: kafka
+            config:
+              - type: container
+                paths: /var/log/containers/*-${data.kubernetes.container.id}.log 
+      processors:
+        - add_kubernetes_metadata:
+            host: ${NODE_NAME}
+            namespace: "kafka"
+            matchers:
+            - logs_path:
+                logs_path: "/var/log/containers/" # Path of containers logs
+        - drop_event.when: # Drop pods didn't related to kafka in namespace
+            or:
+            - equals:
+                kubernetes.container.name: "prometheus-operator-*"  
+            - equals:
+                kubernetes.container.name: "prometheus-prometheus-*"
+        - drop_fields: # Drop fields. 
+            fields: ["input.type", "ecs.version", "agent.hostname", "agent.id", "agent.name","agent.type", "agent.version", "agent.ephemeral_id",
+            "container.id", "container.image.name", "container.runtime", "log.file.path", "log.offset", "host.name", "kubernetes.deployment.name",
+            "kubernetes.labels.app_kubernetes_io/instance", "kubernetes.labels.app_kubernetes_io/managed-by", "kubernetes.labels.app_kubernetes_io/name",
+            "kubernetes.labels.app_kubernetes_io/part-of", "kubernetes.labels.name", "kubernetes.labels.pod-template-hash", "kubernetes.labels.statefulset_kubernetes_io/pod-name",
+            "kubernetes.labels.strimzi_io/cluster", "kubernetes.labels.strimzi_io/controller", "kubernetes.labels.strimzi_io/controller-name",
+            "kubernetes.labels.strimzi_io/kind", "kubernetes.labels.strimzi_io/name", "kubernetes.labels.strimzi_io/pod-name", "kubernetes.node.uid",
+            "kubernetes.namespace_labels.kubernetes_io/metadata_name", "kubernetes.namespace_uid", "kubernetes.node.hostname", "kubernetes.node.labels.beta_kubernetes_io/arch", 
+            "kubernetes.node.labels.beta_kubernetes_io/os", "kubernetes.node.labels.kubernetes_io/arch", "kubernetes.node.labels.kubernetes_io/hostname", "kubernetes.node.labels.kubernetes_io/os",
+            "kubernetes.node.labels.name", "kubernetes.node.labels.node_kubernetes_io/exclude-from-external-load-balancers", "kubernetes.node.labels.node-role_kubernetes_io/control-plane",
+            "kubernetes.node.labels.node-role_kubernetes_io/master", "kubernetes.node.name", "kubernetes.replicaset.name", "kubernetes.pod.ip", "kubernetes.pod.uid", "stream"]
+
+      output.logstash:
+        hosts: ["service-name.namespace-name.svc.cluster-name:5044"]
+        # To check cluster name run commnad "kubectl config view -o jsonpath='{"Cluster name\tServer\n"}{range .clusters[*]}{.name}{"\t"}{.cluster.server}{"\n"}{end}'"
+
+imageTag: "7.17.3"
+
+
+

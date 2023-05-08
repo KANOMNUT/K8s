@@ -1,0 +1,22 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kafka-ing-route
+  namespace: kafka
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`kafka-ing.kanomnutt.site`)
+      kind: Rule
+      services:
+      - name: kafka-dc-kafka-external-bootstrap
+        port: 9094
+      - name: kafka-dc-kafka-0
+        port: 9094
+      - name: kafka-dc-kafka-1
+        port: 9094
+      - name: kafka-dc-kafka-2
+        port: 9094
+  tls:
+    secretName: kafka-ssl # SSL from Cert Manager

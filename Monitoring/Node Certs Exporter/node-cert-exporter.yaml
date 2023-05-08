@@ -1,0 +1,57 @@
+# Install via helm > https://artifacthub.io/packages/helm/enix/x509-certificate-exporter
+# 1. Add repo > helm repo add enix https://charts.enix.io
+# 2. Install > helm install <release name> -n <namespace> enix/x509-certificate-exporter -f <values file.yaml>
+
+# This configuration monitor all control plan node without etcd
+hostPathsExporter:
+  daemonSets:
+    nodes:
+      watchFiles:
+      - /var/lib/kubelet/pki/kubelet-client-current.pem
+      - /etc/kubernetes/pki/apiserver.crt
+      - /etc/kubernetes/pki/apiserver-kubelet-client.crt
+      - /etc/kubernetes/pki/ca.crt
+      - /etc/kubernetes/pki/front-proxy-ca.crt
+      - /etc/kubernetes/pki/front-proxy-client.crt
+      watchKubeconfFiles:
+      - /etc/kubernetes/admin.conf
+      - /etc/kubernetes/controller-manager.conf
+      - /etc/kubernetes/scheduler.conf
+#-------------------------------------------------------------------------------------
+# This configuration monitor all control plan and worker node without etcd
+hostPathsExporter:
+  podAnnotations:
+    prometheus.io/port: "9793"
+    prometheus.io/scrape: "true"
+  daemonSets:
+    master:
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+      watchFiles:
+      - /var/lib/kubelet/pki/kubelet-client-current.pem
+      - /etc/kubernetes/pki/apiserver.crt
+      - /etc/kubernetes/pki/apiserver-kubelet-client.crt
+      - /etc/kubernetes/pki/ca.crt
+      - /etc/kubernetes/pki/front-proxy-ca.crt
+      - /etc/kubernetes/pki/front-proxy-client.crt
+      watchKubeconfFiles:
+      - /etc/kubernetes/admin.conf
+      - /etc/kubernetes/controller-manager.conf
+      - /etc/kubernetes/scheduler.conf
+    nodes:
+      nodeSelector:
+        worker: ""
+      watchFiles:
+      - /var/lib/kubelet/pki/kubelet-client-current.pem
+      - /etc/kubernetes/pki/ca.crt
+#-------------------------------------------------------------------------------------
+If in case we need to monitor etcd certificate. We need to add path file following below to watchFiles section.
+- /etc/kubernetes/pki/apiserver-etcd-client.crt
+- /etc/kubernetes/pki/etcd/ca.crt
+- /etc/kubernetes/pki/etcd/healthcheck-client.crt
+- /etc/kubernetes/pki/etcd/peer.crt
+- /etc/kubernetes/pki/etcd/server.crt

@@ -1,0 +1,45 @@
+## THAIBEV-KAFKAUSER-SXEXPO ##
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: kafkauser01
+  labels:
+    strimzi.io/cluster: kafka-dc
+spec:
+  authentication:
+    type: scram-sha-512
+  authorization:
+    type: simple
+    acls:
+      # access to kafka topic [All]
+      - resource:
+          type: topic
+          name: kafkatopic01
+          patternType: literal
+        operations: 
+        - Write
+        - Read
+        host: "*"
+      - resource:
+          type: topic
+          name: kafkatopic02
+          patternType: literal
+        operations: 
+        - All
+        host: "*"
+      # access to kafka group [All]
+      - resource:
+          type: group
+          name: kafkauser01-group
+          patternType: literal
+        operations: 
+        - All
+        host: "*"
+      - resource:
+          type: group
+          name: kafkauser01-group-js
+          patternType: literal
+        operations: 
+        - Read
+        host: "*"

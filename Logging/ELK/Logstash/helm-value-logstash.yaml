@@ -1,0 +1,28 @@
+# Install via helm
+# 1.helm repo add elastic https://helm.elastic.co
+# 2.helm repo update
+# 3.helm install logstash -n <namespace> elastic/logstash -f <values.yaml>
+persistence:
+  enabled: true
+
+logstashConfig:
+  logstash.yml: |
+    http.host: 0.0.0.0
+
+logstashPipeline:
+  logstash.conf: |
+    input {
+      beats {
+        port => 5044
+      }
+    }
+    output {
+      elasticsearch {
+        index => "kafka-dc-%{+YYYY.MM.dd}" # Index pattern
+        hosts => [ "elastic-url:9200" ] # change to elastic url
+        user => "elastic" # elastic username
+        password => "pAvpe86EGpfx8SihEeAo" # elastic password
+      }
+    }
+imageTag: "7.17.3"
+
